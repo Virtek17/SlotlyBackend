@@ -1,0 +1,37 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Slotly.Entities
+{
+    [Table("Appointments")]
+    public class Appointment
+    {
+        [Key]
+        public Guid Id { get; set; }
+
+        public Guid BusinessId { get; set; }
+        public virtual Business Business { get; set; } = null!;
+
+        public Guid ClientId { get; set; }
+        public virtual User Client { get; set; } = null!;
+
+        public Guid StaffServiceId { get; set; }
+        public virtual StaffService StaffService { get; set; } = null!;
+
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+
+        public AppointmentStatus Status { get; set; }
+
+        public decimal FinalPrice { get; set; }
+    }
+
+    public enum AppointmentStatus
+    {
+        Pending,
+        Confirmed,
+        Cancelled,
+        Completed,
+        NoShow
+    }
+}
