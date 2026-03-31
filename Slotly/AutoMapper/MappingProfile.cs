@@ -27,6 +27,7 @@ namespace Slotly.AutoMapper
             cfg.CreateMap<Staff, ReadStaffDto>();
 
             cfg.CreateMap<StaffService, StaffServiceDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Staff.Id))
                 .ForMember(dest => dest.Name,
                 opt => opt.MapFrom(src => src.Staff.Name))
                 .ForMember(dest => dest.Position,

@@ -11,6 +11,7 @@ namespace Slotly.Entities
 
         public Guid BusinessId { get; set; }
         public virtual Business Business { get; set; } = null!;
+        
 
         public Guid ClientId { get; set; }
         public virtual User Client { get; set; } = null!;
@@ -24,6 +25,10 @@ namespace Slotly.Entities
         public AppointmentStatus Status { get; set; }
 
         public decimal FinalPrice { get; set; }
+
+        public string? Description { get; set; }
+
+        public string? Title { get; set; }
     }
 
     public enum AppointmentStatus

@@ -28,6 +28,7 @@ services.AddDbContext<SlotlyContext>(optionsAction:
     options => options.UseSqlServer(connectionString));
 
 services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+services.AddScoped<IWorkingHoursRepository, WorkingHoursRepository>();
 
 // Enum => строка
 services.AddControllers()
