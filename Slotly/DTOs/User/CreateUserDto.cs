@@ -1,7 +1,7 @@
 using Slotly.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace Slotly.Models
+namespace Slotly.Models.User
 {
     public class CreateUserDto
     {

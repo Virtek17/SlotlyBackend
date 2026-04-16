@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Slotly.Models
+namespace Slotly.Models.Staff
 {
     public class CreateStaffServiceDto
     {

@@ -1,135 +1,87 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Slotly.Entities;
-using Slotly.Interfaces;
-using Slotly.Models;
+using Microsoft.EntityFrameworkCore;
+using Slotly.Data;
+using Slotly.Models.Business;
 
-namespace Slotly.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class BusinessServiceController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class BusinessServiceController : ControllerBase
+    private readonly SlotlyContext _context;
+    private readonly BusinessServiceService _service;
+    private readonly IMapper _mapper;
+
+    public BusinessServiceController(
+        SlotlyContext context,
+        BusinessServiceService service,
+        IMapper mapper)
     {
-        private readonly IGenericRepository<BusinessService> _businessServiceRepository;
-        private readonly IGenericRepository<Business> _businessRepository;
-        private readonly IGenericRepository<Service> _serviceRepository;
-        private readonly IMapper _mapper;
+        _context = context;
+        _service = service;
+        _mapper = mapper;
+    }
 
-        public BusinessServiceController(
-            IGenericRepository<BusinessService> businessServiceRepository,
-            IGenericRepository<Business> businessRepository,
-            IGenericRepository<Service> serviceRepository,
-            IMapper mapper)
+    [HttpPost]
+    public async Task<IActionResult> Create(CreateBusinessServiceDto dto)
+    {
+        try
         {
-            _businessServiceRepository = businessServiceRepository;
-            _businessRepository = businessRepository;
-            _serviceRepository = serviceRepository;
-            _mapper = mapper;
-        }
+            var result = await _service.CreateAsync(dto);
 
-        [HttpPost]
-        public async Task<IActionResult> CreateBusinessService([FromBody] CreateBusinessServiceDto createBusinessServiceDto)
+            return CreatedAtAction(
+                nameof(GetById),
+                new { id = result.Id },
+                result
+            );
+        }
+        catch (Exception ex)
         {
-            if (!ModelState.IsValid) 
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Проверяем, что бизнес существует
-            var business = await _businessRepository.GetByIdAsync(createBusinessServiceDto.BusinessId);
-            if (business == null)
-            {
-                return BadRequest("Бизнес не найдена");
-            }
-
-            // Проверяем, что услуга существует
-            var service = await _serviceRepository.GetByIdAsync(createBusinessServiceDto.ServiceId);
-            if (service == null)
-            {
-                return BadRequest("Услуга не найдена");
-            }
-
-            // Проверяем, что такая связь уже не существует
-            var existingServices = await _businessServiceRepository.GetAllAsync();
-            if (existingServices.Any(bs => bs.BusinessId == createBusinessServiceDto.BusinessId && 
-                                        bs.ServiceId == createBusinessServiceDto.ServiceId))
-            {
-                return Conflict("This service is already linked to this business");
-            }
-
-            // Парсим время из строки
-            if (!TimeOnly.TryParse(createBusinessServiceDto.BaseDuration, out var duration))
-            {
-                return BadRequest("Invalid duration format. Use format 'HH:mm'");
-            }
-
-            var businessService = new BusinessService
-            {
-                Id = Guid.NewGuid(),
-                BusinessId = createBusinessServiceDto.BusinessId,
-                ServiceId = createBusinessServiceDto.ServiceId,
-                BasePrice = createBusinessServiceDto.BasePrice,
-                BaseDuration = duration
-            };
-
-            await _businessServiceRepository.AddAsync(businessService);
-            await _businessServiceRepository.SaveAsync();
-
-            return CreatedAtAction(nameof(GetBusinessServiceById), new { id = businessService.Id }, businessService);
+            return BadRequest(ex.Message);
         }
+    }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetBusinessServiceById(Guid id)
-        {
-            var businessService = await _businessServiceRepository.GetByIdAsync(id);
-            if (businessService == null)
-            {
-                return NotFound();
-            }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var entity = await _context.BusinessServices
+            .Include(bs => bs.Service)
+            .FirstOrDefaultAsync(bs => bs.Id == id);
 
-            return Ok(businessService);
-        }
+        if (entity == null)
+            return NotFound();
 
-        [HttpGet("by-business/{businessId}")]
-        public async Task<IActionResult> GetServicesByBusiness(Guid businessId)
-        {
-            // Проверяем, что бизнес существует
-            var business = await _businessRepository.GetByIdAsync(businessId);
-            if (business == null)
-            {
-                return NotFound("Business not found");
-            }
+        return Ok(_mapper.Map<BusinessServiceDto>(entity));
+    }
 
-            var businessServices = await _businessServiceRepository.GetAllAsync(bs => bs.Service);
-            var services = businessServices
-                .Where(bs => bs.BusinessId == businessId)
-                .ToList();
+    [HttpGet("by-business/{businessId}")]
+    public async Task<IActionResult> GetByBusiness(Guid businessId)
+    {
+        var result = await _service.GetByBusinessAsync(businessId);
+        return Ok(result);
+    }
 
-            var servicesDto = _mapper.Map<List<BusinessServiceDto>>(services);
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var list = await _context.BusinessServices
+            .Include(bs => bs.Service)
+            .ToListAsync();
 
-            return Ok(servicesDto);
-        }
+        return Ok(_mapper.Map<List<BusinessServiceDto>>(list));
+    }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllBusinessServices()
-        {
-            var businessServices = await _businessServiceRepository.GetAllAsync();
-            return Ok(businessServices);
-        }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var entity = await _context.BusinessServices.FindAsync(id);
 
-        [HttpDelete("{Id}")]
-        public async Task<IActionResult> DeleteBusinessService(Guid Id)
-        {
-            var businessService = await _businessServiceRepository.GetByIdAsync(Id);
-            if (businessService == null)
-            {
-                return NotFound();
-            }
+        if (entity == null)
+            return NotFound();
 
-            _businessServiceRepository.Delete(businessService);
-            await _businessServiceRepository.SaveAsync();
+        _context.BusinessServices.Remove(entity);
+        await _context.SaveChangesAsync();
 
-            return NoContent();
-        }
+        return NoContent();
     }
 }

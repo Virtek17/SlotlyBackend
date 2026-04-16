@@ -88,9 +88,9 @@ namespace Slotly.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Appointment>()
-                .HasOne(a => a.StaffService)
+                .HasOne(a => a.Staff)
                 .WithMany()
-                .HasForeignKey(a => a.StaffServiceId)
+                .HasForeignKey(a => a.StaffId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Appointment>()

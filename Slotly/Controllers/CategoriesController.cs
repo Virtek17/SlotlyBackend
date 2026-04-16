@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Slotly.Data;
 using Slotly.Entities;
 using Slotly.Interfaces;
 
@@ -9,18 +11,18 @@ namespace Slotly.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly IGenericRepository<Category> _categoryRepository;
+        private readonly SlotlyContext _context;
 
-        public CategoriesController(IGenericRepository<Category> categoryRepository)
+        public CategoriesController(SlotlyContext context)
         {
-            _categoryRepository = categoryRepository;
+            _context = context;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
-            var cateogories = await _categoryRepository.GetAllAsync();
-
+            // TODO: сделать через DTO
+            var cateogories = await _context.Categories.ToListAsync();
             return Ok(cateogories);
         }
     }

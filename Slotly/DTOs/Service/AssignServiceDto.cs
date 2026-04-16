@@ -1,4 +1,4 @@
-﻿namespace Slotly.Models
+﻿namespace Slotly.Models.Service
 {
     public class AssignServiceDto
     {

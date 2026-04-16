@@ -1,8 +1,12 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Slotly.Data;
 using Slotly.Entities;
 using Slotly.Interfaces;
-using Slotly.Models;
+using Slotly.Models.Auth;
+using Slotly.Models.User;
+using Slotly.Services;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -12,102 +16,70 @@ namespace Slotly.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly IGenericRepository<User> _userRepository;
+        private readonly SlotlyContext _context;
+        private readonly UserService _userService;
         private readonly IMapper _mapper;
 
         public UserController(
-            IGenericRepository<User> userRepository,
+            SlotlyContext context,
+            UserService userService,
             IMapper mapper)
         {
-            _userRepository = userRepository;
+            _context = context;
+            _userService = userService;
             _mapper = mapper;
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto createUserDto)
+        public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+                var result = await _userService.RegisterAsync(dto);
+                return CreatedAtAction(nameof(GetUserById), new {id = result.Id}, result);
+            } catch (Exception ex)
+            {
+                return Conflict(ex.Message);
             }
-
-            // Проверка, что пользователь с таким email еще не существует
-            var existingUsers = await _userRepository.GetAllAsync();
-            if (existingUsers.Any(u => u.Email == createUserDto.Email))
-            {
-                return Conflict("User with this email already exists");
-            }
-
-            // Хеширование пароля
-            var passwordHash = HashPassword(createUserDto.Password);
-
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                FirstName = createUserDto.FirstName,
-                LastName = createUserDto.LastName,
-                Email = createUserDto.Email,
-                Phone = createUserDto.Phone,
-                PasswordHash = passwordHash,
-                TelegramId = createUserDto.TelegramId,
-                Role = createUserDto.Role,
-                CreatedAtUtc = DateTime.UtcNow
-            };
-
-            await _userRepository.AddAsync(user);
-            await _userRepository.SaveAsync();
-
-            return CreatedAtAction(nameof(GetUserById), new { id = user.Id }, user);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(Guid id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            return Ok(user);
+            var result = _mapper.Map<UserReadDto>(user);
+
+            return Ok(result);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _userRepository.GetAllAsync();
-            return Ok(users);
+            var users = await _context.Users.ToListAsync();
+            var result = _mapper.Map<List<UserReadDto>>(users);
+            return Ok(result);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.Email == loginDto.Email);
+
+            var user = await _userService.AuthenticateAsync(dto.Email, dto.Password); 
 
             if (user == null)
             {
-                return Unauthorized("Пользователь с таким Email еще не найден");
+                return Unauthorized("Invalid credentials");
             }
 
-            var password = HashPassword(loginDto.Password); 
+            return Ok(user);    
 
-            if (user.PasswordHash != password)
-            {
-                return Unauthorized("Неверный пароль");
-            }
 
-            var userDto = _mapper.Map<UserReadDto>(user);
-
-            return Ok(userDto);
         }
-        private string HashPassword(string password)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(bytes);
-            }
-        }
+       
     }
 }

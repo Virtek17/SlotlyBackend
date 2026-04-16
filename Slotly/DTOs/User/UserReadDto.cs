@@ -1,6 +1,6 @@
 ﻿using Slotly.Entities;
 
-namespace Slotly.Models
+namespace Slotly.Models.User
 {
     public class UserReadDto
     {

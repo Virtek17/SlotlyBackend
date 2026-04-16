@@ -5,6 +5,7 @@ using Slotly.Data;
 using Slotly.Entities;
 using Slotly.Interfaces;
 using Slotly.Repositories;
+using Slotly.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +30,14 @@ services.AddDbContext<SlotlyContext>(optionsAction:
 
 services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 services.AddScoped<IWorkingHoursRepository, WorkingHoursRepository>();
+//services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+services.AddScoped<UserService>();
+services.AddScoped<WorkingHoursService>();
+services.AddScoped<BusinessServiceService>();
+services.AddScoped<AppointmentService>();
+services.AddScoped<SlotService>();
+
+
 
 // Enum => строка
 services.AddControllers()

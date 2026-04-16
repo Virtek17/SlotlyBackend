@@ -1,4 +1,4 @@
-﻿namespace Slotly.Models
+﻿namespace Slotly.Models.Business
 {
     public class BusinessReadDto
     {

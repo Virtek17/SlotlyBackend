@@ -9,15 +9,14 @@ namespace Slotly.Entities
         [Key]
         public Guid Id { get; set; }
 
-        public Guid BusinessId { get; set; }
+        public Guid? BusinessId { get; set; }
         public virtual Business Business { get; set; } = null!;
-        
 
-        public Guid ClientId { get; set; }
-        public virtual User Client { get; set; } = null!;
+        public Guid? ClientId { get; set; }
+        public virtual User? Client { get; set; } = null!;
 
-        public Guid StaffServiceId { get; set; }
-        public virtual StaffService StaffService { get; set; } = null!;
+        public Guid StaffId { get; set; }
+        public virtual Staff Staff { get; set; } = null!;
 
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

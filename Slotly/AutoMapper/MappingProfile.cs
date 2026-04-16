@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
 using Slotly.Entities;
-using Slotly.Models;
+using Slotly.Models.Appointment;
+using Slotly.Models.Business;
+using Slotly.Models.Staff;
+using Slotly.Models.User;
 
 namespace Slotly.AutoMapper
 {
@@ -27,12 +30,15 @@ namespace Slotly.AutoMapper
             cfg.CreateMap<Staff, ReadStaffDto>();
 
             cfg.CreateMap<StaffService, StaffServiceDto>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Staff.Id))
+                .ForMember(dest => dest.StaffId, opt => opt.MapFrom(src => src.Staff.Id))
                 .ForMember(dest => dest.Name,
                 opt => opt.MapFrom(src => src.Staff.Name))
                 .ForMember(dest => dest.Position,
                 opt => opt.MapFrom(src => src.Staff.Position))
                 .ForMember(dest => dest.ServiceName, opt => opt.MapFrom(src => src.BusinessService.Service.Name));
+
+            cfg.CreateMap<Appointment, GetAppointmentDto>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
 
         }

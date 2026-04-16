@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Slotly.Data;
 
@@ -11,9 +12,11 @@ using Slotly.Data;
 namespace Slotly.Migrations
 {
     [DbContext(typeof(SlotlyContext))]
-    partial class SlotlyContextModelSnapshot : ModelSnapshot
+    [Migration("20260401173557_FixAppointmentEntity")]
+    partial class FixAppointmentEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,7 +31,7 @@ namespace Slotly.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BusinessId")
+                    b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ClientId")
@@ -44,7 +47,7 @@ namespace Slotly.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("StaffId")
+                    b.Property<Guid>("StaffServiceId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartTime")
@@ -62,7 +65,7 @@ namespace Slotly.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("StaffId");
+                    b.HasIndex("StaffServiceId");
 
                     b.ToTable("Appointments");
                 });
@@ -297,16 +300,17 @@ namespace Slotly.Migrations
                     b.HasOne("Slotly.Entities.Business", "Business")
                         .WithMany()
                         .HasForeignKey("BusinessId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Slotly.Entities.User", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Slotly.Entities.Staff", "Staff")
+                    b.HasOne("Slotly.Entities.StaffService", "StaffService")
                         .WithMany()
-                        .HasForeignKey("StaffId")
+                        .HasForeignKey("StaffServiceId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -314,7 +318,7 @@ namespace Slotly.Migrations
 
                     b.Navigation("Client");
 
-                    b.Navigation("Staff");
+                    b.Navigation("StaffService");
                 });
 
             modelBuilder.Entity("Slotly.Entities.Business", b =>

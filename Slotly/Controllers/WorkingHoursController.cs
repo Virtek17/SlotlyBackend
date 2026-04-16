@@ -1,60 +1,36 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Slotly.Entities;
-using Slotly.Interfaces;
-using Slotly.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using Slotly.Models.WorkingHours;
+using Slotly.Services;
 
-namespace Slotly.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class WorkingHoursController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class WorkingHoursController : ControllerBase
+    private readonly WorkingHoursService _service;
+
+    public WorkingHoursController(WorkingHoursService service)
     {
-        private readonly IWorkingHoursRepository _repository;
+        _service = service;
+    }
 
-        public WorkingHoursController(IWorkingHoursRepository repository)
+    [HttpGet("staff/{staffId}")]
+    public async Task<IActionResult> GetStaffSchedule(Guid staffId)
+    {
+        var result = await _service.GetByStaffIdAsync(staffId);
+        return Ok(result);
+    }
+
+    [HttpPost("sync/{staffId}")]
+    public async Task<IActionResult> SyncSchedule(Guid staffId, List<WorkingIntervalDto> dto)
+    {
+        try
         {
-            _repository = repository;
+            await _service.SyncAsync(staffId, dto);
+            return Ok(new { message = "Расписание обновлено" });
         }
-
-        [HttpGet("staff/{staffId}")]
-        public async Task<IActionResult> GetStaffSchedule(Guid staffId)
+        catch (Exception ex)
         {
-            var schedule = await _repository.GetByStaffIdAsync(staffId);
-
-            var result = schedule.Select(s => new WorkingIntervalDto
-            {
-                DayOfWeek = s.DayOfWeek,
-                StartTime = s.StartTime,
-                EndTime = s.EndTime,
-
-            });
-
-            return Ok(result);
-        }
-
-        [HttpPost("sync/{staffId}")]
-        public async Task<IActionResult> SyncShadule(Guid staffId, [FromBody] List<WorkingIntervalDto> dto)
-        {
-            if (dto == null) return BadRequest("Данные не переданы");
-
-            var intervals = dto.Select(i => new WorkingHours
-            {
-                Id = Guid.NewGuid(),
-                StaffId = staffId,
-                DayOfWeek = i.DayOfWeek,
-                StartTime = i.StartTime,
-                EndTime = i.EndTime
-            }).ToList();
-
-            try
-            {
-                await _repository.SyncIntervalsAsync(staffId, intervals);
-                return Ok(new { message = "расписание успешно обновлено" });
-            } catch (Exception ex)
-            {
-                return StatusCode(500, "Ошибка при сохранении расписания");
-            } 
+            return BadRequest(ex.Message);
         }
     }
 }

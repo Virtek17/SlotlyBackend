@@ -1,8 +1,10 @@
-﻿namespace Slotly.Models
+﻿namespace Slotly.Models.Staff
 {
     public class StaffServiceDto
     {
         public Guid Id { get; set; }
+
+        public Guid StaffId { get; set; }
 
         public string Name { get; set; }
 

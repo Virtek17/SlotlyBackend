@@ -1,4 +1,4 @@
-﻿namespace Slotly.Models
+﻿namespace Slotly.Models.WorkingHours
 {
     public class WorkingIntervalDto
     {
