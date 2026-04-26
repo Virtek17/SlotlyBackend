@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop.Infrastructure;
 using Slotly.Data;
+using Slotly.DTOs.Staff;
 using Slotly.Entities;
 using Slotly.Interfaces;
 using Slotly.Models.Staff;

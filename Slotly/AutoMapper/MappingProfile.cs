@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Slotly.DTOs.Staff;
 using Slotly.Entities;
 using Slotly.Models.Appointment;
 using Slotly.Models.Business;
@@ -20,6 +21,7 @@ namespace Slotly.AutoMapper
                     opt => opt.MapFrom(src => $"{src.FirstName} {src.LastName}"))
                 .ForMember(dest => dest.Role,
                     opt => opt.MapFrom(src => src.Role.ToString()));
+            cfg.CreateMap<CreateUserDto, User>();
 
             cfg.CreateMap<BusinessService, BusinessServiceDto>()
                 .ForMember(dest => dest.ServiceName,
